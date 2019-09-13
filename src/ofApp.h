@@ -73,12 +73,16 @@ class ofApp : public ofBaseApp{
     ofParameter<bool> bTracking;
     ofParameter<bool> bFlip;
 
+    ofParameter<float> wavePowerDelta;
+    ofParameter<float> wavePowerMax;
+    ofParameter<float> waveThreshold;
+
     
     
+    int trackingDataSize = 16; // section of angle, 180 degree divid
+    vector<float> trackingData; // summ up color info for sections
     
-    int trackingDataSize = 32;
-    vector<float> trackingData;
     
-    
+    vector<float> oscData;
     
 };

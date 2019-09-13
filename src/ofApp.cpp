@@ -20,7 +20,10 @@ float ofApp::myPosToAngle(float x,float y,float centerX,float centerY){
         res = 1. + res;
     }
     
-    return res;
+    if(res > 1){
+        res = 1;
+    }
+    return abs(res);
 }
 
 
@@ -77,7 +80,8 @@ void ofApp::setup(){
     
     
     for (int i = 0; i < trackingDataSize; i++) {
-        trackingData.push_back(-0.1);
+        trackingData.push_back(0.0);
+        oscData.push_back(0.0);
     }
     
     
@@ -102,6 +106,10 @@ void ofApp::setup(){
     gui.add(outRadius.set("out r",10,1,480));
     gui.add(inRadius.set("in r",0,1,480));
     
+    gui.add(wavePowerMax.set("wave power max",0,.1,5));
+    gui.add(wavePowerDelta.set("wave power delta",0,0.01,2));
+    gui.add(waveThreshold.set("wave threshold",10,1,2000));
+
     
     if (!ofFile("settings.xml"))
         gui.saveToFile("settings.xml");
@@ -113,7 +121,7 @@ void ofApp::setup(){
 //--------------------------------------------------------------
 void ofApp::update(){
     for (int i = 0; i < trackingDataSize; i++) {
-        trackingData[i] = -0.1;
+        trackingData[i] = 0.0;
     }
     
     
@@ -239,11 +247,14 @@ void ofApp::update(){
                         ofColor c = strench.getColor(i, j);
 
                         //                cout << ofToString(c) << endl;
-                        if(c.r < 100){
+                        if(c.r > 10){
                             float angle = myPosToAngle(i,j,detectCircleCenterY,detectCircleCenterY);
 
                             int angleIndex = floor((trackingDataSize - 1)*angle);
 //                            trackingData[angleIndex] = 1.0;
+                            
+                            
+                            trackingData[angleIndex] += 1;
                         }
                     }
 
@@ -259,7 +270,11 @@ void ofApp::update(){
         
     
     
- 
+        // analyse end, process and prepare data to send
+        
+        
+        
+        
 
     if(bSendingOSC){
         // prepare data for osc send ----------------------------------------
@@ -277,7 +292,7 @@ void ofApp::update(){
         for(int i = 0;i<trackingDataSize;i++){
             //            oscTrackingData[i] = -0.1;
             //            oscTrackingData[i] += i * 0.1;
-            data += ofToString(trackingData[i]);
+            data += ofToString(oscData[i]);
             if(i != trackingDataSize - 1){
                 data += ",";
             }
@@ -288,7 +303,6 @@ void ofApp::update(){
 //        cout << data << endl;
         
         // debug ================
-        //        m.setAddress("/composition/selectedclip/video/effects/pwaveword/effect/osctextdata0");
         m.setAddress("/composition/selectedclip/video/effects/pwaveword/effect/osctextdata0");
         m.addStringArg(data);
         sender.sendMessage(m,false);
