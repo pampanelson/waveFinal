@@ -1,16 +1,17 @@
 <?xml version="1.0"?>
 <group>
-	<Sending_osc>1</Sending_osc>
-	<Tracking>1</Tracking>
-	<min_area>1</min_area>
-	<max_area>10</max_area>
+	<Sending_osc>0</Sending_osc>
+	<Tracking>0</Tracking>
+	<min_area>24.92</min_area>
+	<max_area>380.525</max_area>
 	<tracking_thresh>1</tracking_thresh>
-	<near>230</near>
-	<far>70</far>
-	<use_opencv>0</use_opencv>
+	<near>185</near>
+	<far>136</far>
+	<use_opencv>1</use_opencv>
 	<circle_x>323</circle_x>
 	<circle_y>307</circle_y>
-	<strench>35</strench>
+	<strench>54</strench>
 	<out_r>278</out_r>
-	<in_r>250</in_r>
+	<in_r>218</in_r>
+	<angle>18.9</angle>
 </group>

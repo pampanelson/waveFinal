@@ -38,30 +38,6 @@ void ofApp::setup(){
     sender.setup(HOST, PORT);
     
     
-    camWidth = 640;  // try to grab at this size.
-    camHeight = 480;
-    
-    //get back a list of devices.
-//    vector<ofVideoDevice> devices = vidGrabber.listDevices();
-//
-//    for(size_t i = 0; i < devices.size(); i++){
-//        if(devices[i].bAvailable){
-//            //log the device
-//            ofLogNotice() << devices[i].id << ": " << devices[i].deviceName;
-//        }else{
-//            //log the device and note it as unavailable
-//            ofLogNotice() << devices[i].id << ": " << devices[i].deviceName << " - unavailable ";
-//        }
-//    }
-//
-//    vidGrabber.setDeviceID(0);
-//    vidGrabber.setDesiredFrameRate(30);
-//    vidGrabber.initGrabber(camWidth, camHeight);
-//
-//    vidImg.allocate(camWidth, camHeight, OF_IMAGE_COLOR);
-
-    
-    
     // enable depth->video image calibration
     kinect.setRegistration(true);
     
@@ -75,6 +51,7 @@ void ofApp::setup(){
     
     //    cout << kinect.width << "," << kinect.height << endl;
     grayImage.allocate(kinect.width, kinect.height);
+    grayImage1.allocate(kinect.width, kinect.height);
     grayThreshNear.allocate(kinect.width, kinect.height);
     grayThreshFar.allocate(kinect.width, kinect.height);
     
@@ -85,9 +62,6 @@ void ofApp::setup(){
     nearThreshold = 230;
     farThreshold = 70;
     bThreshWithOpenCV = true;
-    
-    //    ofSetFrameRate(60);
-    
     // zero the tilt on startup
     angle = 0;
     kinect.setCameraTiltAngle(angle);
@@ -99,23 +73,7 @@ void ofApp::setup(){
         ofLogNotice() << "zero plane pixel size: " << kinect.getZeroPlanePixelSize() << "mm";
         ofLogNotice() << "zero plane dist: " << kinect.getZeroPlaneDistance() << "mm";
     }
-    
 
-//
-//    colorImage.allocate(camWidth,camHeight);
-//
-//    grayImage.allocate(camWidth, camHeight);
-//    grayThreshNear.allocate(camWidth, camHeight);
-//    grayThreshFar.allocate(camWidth, camHeight);
-//
-    
-    
-    
-    
-    width = 3840;
-    height = 960;
-    
-    
     
     
     for (int i = 0; i < trackingDataSize; i++) {
@@ -221,28 +179,18 @@ void ofApp::update(){
         // an object can move up to 32 pixels per frame
         //        contourFinder.getTracker().setMaximumDistance(maxDistance);
         
-        
-        
-        // tracking
-        // judege if need to sending signal for make waves
-        
+    
         // get all tracking contour centroid average value
-        contourFinder.findContours(grayImage);
+//        contourFinder.findContours(grayImage);
         
-        
- 
-        // update the cv images
-        grayImage.flagImageChanged();
+    
         
         // get diff
         //    absdiff(grayImage, previous, diff);
         //    diff.update();
         copy(grayImage, previous);
+        grayImage1 = grayImage;
         //    blur(diff,10);
-        
-        
-        
-        grayImage.blur();
         
         
         for (int i = 0; i < previous.getWidth(); i++) {
@@ -286,28 +234,28 @@ void ofApp::update(){
                 for (int j = 0; j < strench.getHeight(); j++) {
                     //            // detect to remove other then circle base original coordination
                     float dist = sqrt((i - detectCircleCenterX)*(i - detectCircleCenterX) + (j-detectCircleCenterY)*(j-detectCircleCenterY));
-                    
+
                     if(dist > inRadius && dist < outRadius){
                         ofColor c = strench.getColor(i, j);
-                        
+
                         //                cout << ofToString(c) << endl;
                         if(c.r < 100){
                             float angle = myPosToAngle(i,j,detectCircleCenterY,detectCircleCenterY);
-                            
+
                             int angleIndex = floor((trackingDataSize - 1)*angle);
-                            trackingData[angleIndex] = 1.0;
+//                            trackingData[angleIndex] = 1.0;
                         }
                     }
-                    
-                    
-                    
+
+
+
                 }
             }
             
         }
 
-        grayImage.setFromPixels(strench);
-        grayImage.flagImageChanged();
+        grayImage1.setFromPixels(strench);
+        grayImage1.flagImageChanged();
         
     
     
@@ -361,12 +309,10 @@ void ofApp::update(){
 
 //--------------------------------------------------------------
 void ofApp::draw(){
-        grayImage.draw(0,0,640,480);
+    grayImage.draw(0,0,640,480);
+    grayImage1.draw(640,0,640,480);
     //    diff.draw(640, 480);
     
-    //    vidGrabber.getTexture().draw(0, 0);
-    //    contourFinder.draw();
-    //    colorImage.draw(0, 480);
     
     
     ofSetColor(0, 0, 255,50);
@@ -379,7 +325,13 @@ void ofApp::draw(){
     gui.draw();
 
 }
-
+//--------------------------------------------------------------
+void ofApp::exit(){
+    
+    kinect.setCameraTiltAngle(0); // zero the tilt on exit
+    kinect.close();
+    
+}
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
 

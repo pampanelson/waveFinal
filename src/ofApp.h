@@ -22,7 +22,7 @@ class ofApp : public ofBaseApp{
 		void setup();
 		void update();
 		void draw();
-
+    void exit();
 		void keyPressed(int key);
 		void keyReleased(int key);
 		void mouseMoved(int x, int y );
@@ -41,25 +41,12 @@ class ofApp : public ofBaseApp{
     
     ofxOscSender sender;
     
-    
-
-    
-    int                 width;
-    int                 height;
-    
-    ofVideoGrabber vidGrabber;
-    ofPixels videoInverted;
-    ofTexture videoTexture;
-    ofImage   vidImg;
-    int camWidth;
-    int camHeight;
-    
-    
     ofxKinect kinect;
 
     
     ofxCvColorImage     colorImage;
     ofxCvGrayscaleImage grayImage; // grayscale depth image
+    ofxCvGrayscaleImage grayImage1; // grayscale depth image
     ofxCv::ContourFinder contourFinder;
     ofxCvGrayscaleImage grayThreshNear; // the near thresholded image
     ofxCvGrayscaleImage grayThreshFar; // the far thresholded image
@@ -68,9 +55,6 @@ class ofApp : public ofBaseApp{
     ofPixels strench;
 
 
-    
-    
-    
     ofxPanel gui;
     ofParameter<bool> bThreshWithOpenCV;
     ofParameter<float> minAreaRadius;
@@ -79,14 +63,12 @@ class ofApp : public ofBaseApp{
     ofParameter<float> angle;
     ofParameter<int> nearThreshold;
     ofParameter<int> farThreshold;
+    
     ofParameter<int> outRadius;
     ofParameter<int> inRadius;
-    
     ofParameter<int> detectCircleCenterX;
     ofParameter<int> detectCircleCenterY;
-    
     ofParameter<int> detectStrenchrX;
-    
     ofParameter<bool> bSendingOSC;
     ofParameter<bool> bTracking;
     ofParameter<bool> bFlip;
