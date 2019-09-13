@@ -4,9 +4,9 @@
 
 float ofApp::myPosToAngle(float x,float y,float centerX,float centerY){
     float res;
-    // center on (320,480)
+    
     res = atan(
-               (centerY - y) // always > 0 for top lefter (0,0)
+               (y - centerY) // always > 0 for top lefter (0,0)
                /
                (centerX - x) // if > 0 means point on the left of center
                // if < 0 point on the right of center
@@ -20,10 +20,8 @@ float ofApp::myPosToAngle(float x,float y,float centerX,float centerY){
         res = 1. + res;
     }
     
-    if(res > 1){
-        res = 1;
-    }
-    return abs(res);
+    res = ofClamp(res, 0, 1);
+    return res;
 }
 
 
@@ -46,7 +44,8 @@ void ofApp::setup(){
     
     kinect.init();
     //kinect.init(true); // shows infrared instead of RGB video image
-    //kinect.init(false, false); // disable video image (faster fps)
+    kinect.init(false, false); // disable video image (faster fps)
+
     
     kinect.open();        // opens first available kinect
     //kinect.open(1);    // open a kinect by id, starting with 0 (sorted by serial # lexicographically))
@@ -90,7 +89,8 @@ void ofApp::setup(){
     
     gui.add(bSendingOSC.set("Sending osc",false));
     gui.add(bTracking.set("Tracking",false));
-    
+    gui.add(bFlip.set("Flip",false));
+
     gui.add(minAreaRadius.set("min area",1,1,300));
     gui.add(maxAreaRadius.set("max area",10,1,800));
     gui.add(trackingThreshold.set("tracking thresh",1,1,100));
@@ -248,12 +248,12 @@ void ofApp::update(){
 
                         //                cout << ofToString(c) << endl;
                         if(c.r > 10){
-                            float angle = myPosToAngle(i,j,detectCircleCenterY,detectCircleCenterY);
-
-                            int angleIndex = floor((trackingDataSize - 1)*angle);
-//                            trackingData[angleIndex] = 1.0;
+                            float angle = myPosToAngle(i,j,detectCircleCenterX,detectCircleCenterY);
+                            angle = ofClamp(angle, 0, 1);
                             
-                            
+                            angle = 1. - angle;// why???????????????? but work
+                            int angleIndex = floor(trackingDataSize*angle);
+                            angleIndex = ofClamp(angleIndex, 0, trackingDataSize-1);
                             trackingData[angleIndex] += 1;
                         }
                     }
@@ -273,7 +273,22 @@ void ofApp::update(){
         // analyse end, process and prepare data to send
         
         
-        
+        for (int i = 0; i < trackingDataSize; i++) {
+            if(trackingData[i] > waveThreshold){
+                oscData[i] += wavePowerDelta;
+                
+            }else{
+                oscData[i] -= wavePowerDelta;
+            }
+            
+            if(oscData[i] > wavePowerMax){
+                oscData[i] = wavePowerMax;
+            }
+            
+            if(oscData[i] < 0){
+                oscData[i] = 0;
+            }
+        }
         
 
     if(bSendingOSC){
@@ -323,8 +338,8 @@ void ofApp::update(){
 
 //--------------------------------------------------------------
 void ofApp::draw(){
-    grayImage.draw(0,0,640,480);
-    grayImage1.draw(640,0,640,480);
+    grayImage1.draw(0,0,640,480);
+    grayImage.draw(640,0,640,480);
     //    diff.draw(640, 480);
     
     
@@ -334,6 +349,21 @@ void ofApp::draw(){
     
     ofSetColor(255, 0,0,50);
     ofDrawCircle(detectCircleCenterX, detectCircleCenterY, outRadius);
+    
+    
+    // draw osc data for monitor
+    for (int i = 0; i < trackingDataSize; i++) {
+        ofSetColor(oscData[i]*30 + 10, 0, 0);
+        int w = 30;
+        int h = 40;
+        
+        ofDrawRectangle(10 + i*w, 515, w, h);
+        ofSetColor(255, 0, 0);
+        ofDrawBitmapString(ofToString(i),10 + i*w,500);
+
+    }
+    
+    
     
     ofSetColor(255);
     gui.draw();
