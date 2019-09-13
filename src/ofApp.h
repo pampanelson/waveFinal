@@ -79,7 +79,7 @@ class ofApp : public ofBaseApp{
 
     
     
-    int trackingDataSize = 16; // section of angle, 180 degree divid
+    int trackingDataSize = 24; // section of angle, 180 degree divid
     vector<float> trackingData; // summ up color info for sections
     
     
