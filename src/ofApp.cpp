@@ -109,6 +109,9 @@ void ofApp::setup(){
     gui.add(wavePowerMax.set("wave power max",0,.1,5));
     gui.add(wavePowerDelta.set("wave power delta",0,0.01,2));
     gui.add(waveThreshold.set("wave threshold",10,1,2000));
+    gui.add(bUseRandomShape.set("random shape",false));
+    gui.add(randomWavePowerMaxMin.set("random power max min",0,.1,5));
+    gui.add(randomWavePowerDeltaMin.set("random power delta minn",0,0.01,1));
 
     
     if (!ofFile("settings.xml"))
@@ -124,7 +127,7 @@ void ofApp::update(){
         trackingData[i] = 0.0;
     }
     
-    
+    changingWaveShapeMarker = 0.0;
     
     kinect.setCameraTiltAngle(angle);
     
@@ -179,9 +182,9 @@ void ofApp::update(){
         
         grayImage.blur();
         
-        contourFinder.setMinAreaRadius(minAreaRadius);
-        contourFinder.setMaxAreaRadius(maxAreaRadius);
-        contourFinder.setThreshold(trackingThreshold);
+//        contourFinder.setMinAreaRadius(minAreaRadius);
+//        contourFinder.setMaxAreaRadius(maxAreaRadius);
+//        contourFinder.setThreshold(trackingThreshold);
         // wait for half a second before forgetting something
         //        contourFinder.getTracker().setPersistence(trackingPersistence);
         // an object can move up to 32 pixels per frame
@@ -248,7 +251,21 @@ void ofApp::update(){
 
                         //                cout << ofToString(c) << endl;
                         if(c.r > 10){
-                            float angle = myPosToAngle(i,j,detectCircleCenterX,detectCircleCenterY);
+                            
+                            // if on right strneched area, angle to center x + strenchX
+                            // if on left strenched arean , angle to center x - strechanx
+                            
+                            
+                            int cX ;
+                            if(i > detectCircleCenterX){
+                                cX = detectCircleCenterX + detectStrenchrX;
+                            }
+                            if(i < detectCircleCenterX){
+                                cX = detectCircleCenterX - detectStrenchrX;
+                            }
+                            
+                            
+                            float angle = myPosToAngle(i,j,cX,detectCircleCenterY);
                             angle = ofClamp(angle, 0, 1);
                             
                             angle = 1. - angle;// why???????????????? but work
@@ -275,22 +292,42 @@ void ofApp::update(){
         
         for (int i = 0; i < trackingDataSize; i++) {
             if(trackingData[i] > waveThreshold){
-                oscData[i] += wavePowerDelta;
+                oscData[i] += currentWaveDelta;
                 
             }else{
-                oscData[i] -= wavePowerDelta;
+                oscData[i] -= currentWaveDelta;
             }
             
-            if(oscData[i] > wavePowerMax){
-                oscData[i] = wavePowerMax;
+            if(oscData[i] > currentWavePowerMax){
+                oscData[i] = currentWavePowerMax;
             }
             
             if(oscData[i] < 0){
                 oscData[i] = 0;
             }
+            
+            //summup value for check if no wave on , and have chance to change wavw shape
+            
+            changingWaveShapeMarker += oscData[i];
+            
         }
         
+        
+        // if change wave shape when have chance ======================
+        
+        if(changingWaveShapeMarker == 0 && bUseRandomShape){
+            
+            currentWaveDelta = ofRandom(randomWavePowerDeltaMin, wavePowerDelta);
+            currentWavePowerMax = ofRandom(randomWavePowerMaxMin,wavePowerMax);
+        }
+        else{
+            currentWavePowerMax = wavePowerMax;
+            currentWaveDelta = wavePowerDelta;
+        }
 
+        
+        
+        
     if(bSendingOSC){
         // prepare data for osc send ----------------------------------------
         

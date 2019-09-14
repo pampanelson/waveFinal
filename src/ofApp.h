@@ -77,12 +77,18 @@ class ofApp : public ofBaseApp{
     ofParameter<float> wavePowerMax;
     ofParameter<float> waveThreshold;
 
+    ofParameter<bool> bUseRandomShape;
+    ofParameter<float> randomWavePowerDeltaMin;
+    ofParameter<float> randomWavePowerMaxMin;
     
-    
-    int trackingDataSize = 24; // section of angle, 180 degree divid
+    int trackingDataSize = 18; // section of angle, 180 degree divid
     vector<float> trackingData; // summ up color info for sections
     
     
     vector<float> oscData;
     
+    float changingWaveShapeMarker;
+    
+    float currentWavePowerMax;
+    float currentWaveDelta;
 };
